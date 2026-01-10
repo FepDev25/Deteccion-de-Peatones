@@ -1,8 +1,5 @@
 .venv/
-docs/
 training/raw_data/
-# C++ y Compilación 
-# Ignorar carpetas de compilación 
 build/
 bin/
 out/
@@ -11,7 +8,6 @@ out/
 *.so
 *.a
 
-# Ignorar archivos temporales de CMake
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
@@ -22,14 +18,12 @@ Makefile
 .idea/
 .DS_Store
 
-# DATASET Y ENTRENAMIENTO (MUY IMPORTANTE)
-
 **/dataset/
 **/frames/
 **/training/raw_pos/
 **/training/negative/
+training/videos/
 
-# Ignorar archivos intermedios del entrenamiento
 *.vec
 *.dat
 *.txt
@@ -39,11 +33,6 @@ Makefile
 !augment_data.py
 !unificar_dataset.py
 
-# Si el modelo final (.xml) pesa mucho (más de 50MB), ignóralo también
-# y pásaselo a tu compañero por Drive. Si pesa poco, coméntalo:
-# *.xml 
-
-# Python
 __pycache__/
 *.pyc
 venv/
