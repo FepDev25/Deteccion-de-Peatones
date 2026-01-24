@@ -40,4 +40,5 @@ env/
 
 .env
 
-dataset_final/
+training/negatives
+training/positives_complex
