@@ -42,3 +42,5 @@ env/
 
 training/negatives
 training/positives_complex
+training/positives_standing
+training/data/
