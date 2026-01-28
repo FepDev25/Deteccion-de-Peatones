@@ -2,12 +2,53 @@ from flask import Flask, request, jsonify
 from detector import PoseDetector
 from telegram_service import TelegramService
 from config import Config
+import queue
+import threading
+import time
 
 app = Flask(__name__)
 
 config = Config()
-detector = PoseDetector()
+detector = PoseDetector() # cargar YOLO
 telegram_service = TelegramService(config.telegram_token, config.telegram_chat_id)
+
+job_queue = queue.Queue(maxsize=50)
+
+def worker():
+    """Saca fotos de la cola y las procesa una por una, sin bloquear al cliente C++."""
+    print("[WORKER] Hilo de procesamiento iniciado y esperando imágenes...")
+    
+    while True:
+        try:
+            # esperar a que llegue una imagen a la cola
+            image_bytes = job_queue.get()
+            
+            start_time = time.time()
+            print(f"[WORKER] Procesando imagen... (En cola: {job_queue.qsize()})")
+
+            result = detector.analyze_image(image_bytes)
+            
+            if result['success']:
+                telegram_service.send_notification(
+                    result['annotated_image'], 
+                    result['status']
+                )
+                print(f"[WORKER] Notificación enviada. Estado: {result['status']}")
+            else:
+                print(f"[WORKER] Error en detección: {result.get('error')}")
+
+            # Log de tiempo real de procesamiento
+            elapsed = time.time() - start_time
+            print(f"[WORKER] Tarea finalizada en {elapsed:.2f}s")
+
+        except Exception as e:
+            print(f"[WORKER] Error crítico: {e}")
+        
+        finally:
+            job_queue.task_done()
+
+threading.Thread(target=worker, daemon=True).start()
+
 
 @app.route('/detect', methods=['POST'])
 def detect():
@@ -16,27 +57,25 @@ def detect():
             return jsonify({"error": "No image provided"}), 400
 
         file = request.files['image']
+        
         image_bytes = file.read()
         
-        result = detector.analyze_image(image_bytes)
-        
-        if result['success']:
-            telegram_service.send_notification(
-                result['annotated_image'], 
-                result['status']
-            )
+        try:
+            job_queue.put_nowait(image_bytes)
             
             return jsonify({
-                "status": "success", 
-                "analysis": result['status'],
-                "is_critical": result['is_critical']
+                "status": "queued", 
+                "message": "Imagen recibida. Procesando en segundo plano."
             }), 200
-        else:
-            return jsonify({"error": result['error']}), 500
+            
+        except queue.Full:
+            print("[ERROR] La cola está llena, descartando imagen.")
+            return jsonify({"error": "Server overload (Queue full)"}), 503
 
     except Exception as e:
-        print(f"[ERROR] {e}")
+        print(f"[ERROR API] {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    # threaded=True permite manejar múltiples peticiones HTTP a la vez
+    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
