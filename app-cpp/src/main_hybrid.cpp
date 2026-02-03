@@ -31,7 +31,7 @@ bool isValidPerson(const Mat& roi) {
     // 1. Varianza de color - ventanas son muy uniformes, personas tienen textura
     Scalar mean_color, stddev_color;
     meanStdDev(gray_roi, mean_color, stddev_color);
-    if (stddev_color[0] < 16.0) {  // Balance: filtrar sillas pero permitir ropa uniforme
+    if (stddev_color[0] < 17.0) {  // Aumentado para filtrar sillas uniformes
         return false; // Demasiado uniforme (ventana/pared/silla)
     }
 
@@ -40,8 +40,8 @@ bool isValidPerson(const Mat& roi) {
     Canny(gray_roi, edges, 50, 150);
     double edgeDensity = countNonZero(edges) / (double)(edges.rows * edges.cols);
     
-    // Ventanas tienen baja densidad de bordes O demasiada (marcos)
-    if (edgeDensity < 0.08 || edgeDensity > 0.45) {  // Rango más estrecho
+    // Ventanas/sillas tienen baja densidad O demasiada (marcos metálicos)
+    if (edgeDensity < 0.08 || edgeDensity > 0.40) {  // Reducido máximo para filtrar sillas
         return false;
     }
 
@@ -77,7 +77,7 @@ bool isValidPerson(const Mat& roi) {
         }
     }
     double transitionRatio = transitions / (double)(gray_roi.rows * gray_roi.cols);
-    if (transitionRatio < 0.14) {  // Balance: filtrar sillas pero permitir ropa lisa
+    if (transitionRatio < 0.15) {  // Aumentado para filtrar sillas
         return false; // Muy poca textura (ventana lisa o silla)
     }
 
@@ -280,7 +280,7 @@ int main() {
                 double aspect = (double)r.height / r.width;
                 if (aspect >= 1.5 && aspect <= 3.0) {
                     all_detections.push_back(r);
-                    all_labels.push_back("De pie");
+                    all_labels.push_back("Peaton detectado");
                     all_confidences.push_back(weights[i]);
                 }
             }
@@ -290,15 +290,15 @@ int main() {
         if (mode == 2 || mode == 3) {
             vector<Rect> lbp_detections;
             
-            // Parámetros BALANCEADOS: detectar agachados sin muchos falsos positivos
+            // Parámetros BALANCEADOS: detectar agachados sin falsos positivos
             cascade_crouching.detectMultiScale(
                 gray, 
                 lbp_detections,
-                1.05,            // scaleFactor (más escalas para mejor cobertura)
-                19,              // minNeighbors BALANCEADO (era 22 muy estricto)
+                1.05,            // scaleFactor (más escalas)
+                18,              // minNeighbors BALANCEADO
                 CASCADE_SCALE_IMAGE,
-                Size(80, 70),    // minSize (detecta cuerpos parciales)
-                Size(315, 295)   // maxSize (personas sentadas/agachadas)
+                Size(75, 65),    // minSize (personas agachadas pequeñas)
+                Size(320, 300)   // maxSize (personas sentadas grandes)
             );
 
             for (Rect r : lbp_detections) {
@@ -309,10 +309,10 @@ int main() {
                 // FILTRAR SI YA HAY DETECCIÓN HOG CERCANA (evitar duplicados)
                 bool overlapWithHOG = false;
                 for (size_t i = 0; i < all_detections.size(); i++) {
-                    if (all_labels[i] == "De pie") {
+                    if (all_labels[i] == "Peaton detectado") {
                         Rect intersection = r & all_detections[i];
                         double iou = intersection.area() / (double)r.area();
-                        if (iou > 0.12) {  // Solo rechazar si overlap >12% (era 25% muy estricto)
+                        if (iou > 0.15) {  // Solo rechazar si overlap >15%
                             overlapWithHOG = true;
                             break;
                         }
@@ -320,10 +320,10 @@ int main() {
                 }
                 if (overlapWithHOG) continue;
 
-                // EXPANDIR BOUNDING BOX ASIMÉTRICAMENTE (incluir pies)
-                int expandX = (int)(r.width * 0.12);       // 12% más ancho
-                int expandTop = (int)(r.height * 0.10);    // 10% hacia arriba
-                int expandBottom = (int)(r.height * 0.30); // 30% hacia abajo (PIES)
+                // EXPANDIR BOUNDING BOX ASIMÉTRICAMENTE (compensar detección parcial LBP)
+                int expandX = (int)(r.width * 0.25);       // 25% más ancho (brazos/hombros)
+                int expandTop = (int)(r.height * 0.20);    // 20% hacia arriba (cabeza completa)
+                int expandBottom = (int)(r.height * 0.60); // 60% hacia abajo (PIERNAS COMPLETAS)
                 
                 r.x = max(0, r.x - expandX);
                 r.y = max(0, r.y - expandTop);
@@ -335,7 +335,7 @@ int main() {
                 if (!isValidPerson(roi)) continue;
 
                 all_detections.push_back(r);
-                all_labels.push_back("Agachado");
+                all_labels.push_back("Peaton detectado");
                 all_confidences.push_back(1.0); // LBP no da scores
             }
         }
@@ -345,7 +345,7 @@ int main() {
 
         // Dibujar detecciones
         for (size_t i = 0; i < all_detections.size(); i++) {
-            Scalar color = (all_labels[i] == "De pie") ? Scalar(0, 255, 0) : Scalar(255, 0, 255);
+            Scalar color = (all_labels[i] == "Peaton detectado") ? Scalar(0, 255, 0) : Scalar(255, 0, 255);
             rectangle(display, all_detections[i], color, 2);
             
             string label = all_labels[i];
