@@ -29,9 +29,13 @@ def worker():
             result = detector.analyze_image(image_bytes)
             
             if result['success']:
+                # Enviar 3 archivos según la rúbrica
                 telegram_service.send_notification(
-                    result['annotated_image'], 
-                    result['status']
+                    original_image=result['original_image'],
+                    annotated_image=result['annotated_image'],
+                    gif_video=result.get('gif_video'),  # Puede ser None si no hay suficientes frames
+                    status_text=result['status'],
+                    person_count=result.get('person_count', 0)
                 )
                 print(f"[WORKER] Notificación enviada. Estado: {result['status']}")
             else:
@@ -43,6 +47,8 @@ def worker():
 
         except Exception as e:
             print(f"[WORKER] Error crítico: {e}")
+            import traceback
+            traceback.print_exc()
         
         finally:
             job_queue.task_done()

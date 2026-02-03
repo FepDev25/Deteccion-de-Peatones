@@ -3,6 +3,7 @@
 #include <QPixmap>
 #include <QMessageBox>
 #include <QCheckBox>
+#include <QDebug>
 #include <curl/curl.h>
 #include <chrono>
 
@@ -257,7 +258,7 @@ void MainWindow::processFrame() {
     
     // Dibujar detecciones
     for (size_t i = 0; i < detections.size(); i++) {
-        cv::Scalar color = (labels[i] == "De pie") ? cv::Scalar(0, 255, 0) : cv::Scalar(255, 0, 255);
+        cv::Scalar color = (labels[i] == "Peaton detectado") ? cv::Scalar(0, 255, 0) : cv::Scalar(255, 0, 255);
         cv::rectangle(display, detections[i], color, 2);
         
         int baseline;
@@ -287,9 +288,11 @@ void MainWindow::processFrame() {
     fpsLabel->setText(QString("FPS: %1").arg(static_cast<int>(fps)));
     detectionCountLabel->setText(QString("Detecciones: %1").arg(detectionCount));
     
-    // Auto-envío al bot
+    // Auto-envío al bot (igual que main_hybrid.cpp - cada 60 frames)
     if (botAutoSend && detectionCount > 0 && cooldownFrames == 0) {
+        qDebug() << "[AUTO] Enviando detección al bot...";
         if (sendImageViaHTTP(display)) {
+            qDebug() << "[AUTO] Imagen enviada exitosamente!" << detectionCount << "personas";
             cooldownFrames = 60; // 2 segundos a ~30 FPS
         }
     }
@@ -306,10 +309,17 @@ void MainWindow::detectHOG(cv::Mat& frame, cv::Mat& gray, std::vector<cv::Rect>&
     std::vector<cv::Rect> hogDets;
     std::vector<double> weights;
     
+    // IMPORTANTE: Reducir tamaño para mejor performance (igual que main_hybrid.cpp)
     cv::Mat resized;
     cv::resize(frame, resized, cv::Size(320, 240));
     
-    hogDetector.detectMultiScale(resized, hogDets, weights, 0.0, cv::Size(4,4), cv::Size(8,8), 1.05, 2.0);
+    // Parámetros EXACTOS de main_hybrid.cpp (funciona perfectamente)
+    hogDetector.detectMultiScale(resized, hogDets, weights, 
+                                 0.0,           // hitThreshold (balanceado)
+                                 cv::Size(4,4), // winStride
+                                 cv::Size(8,8), // padding
+                                 1.05,          // scale
+                                 2.0);          // finalThreshold
     
     for (size_t i = 0; i < hogDets.size(); i++) {
         cv::Rect r = hogDets[i];
@@ -318,10 +328,11 @@ void MainWindow::detectHOG(cv::Mat& frame, cv::Mat& gray, std::vector<cv::Rect>&
         r.width *= 2;
         r.height *= 2;
         
+        // Filtro de aspect ratio (personas de pie)
         double aspect = (double)r.height / r.width;
         if (aspect >= 1.5 && aspect <= 3.0) {
             detections.push_back(r);
-            labels.push_back("De pie");
+            labels.push_back("Peaton detectado");
             confidences.push_back(weights[i]);
         }
     }
@@ -331,18 +342,53 @@ void MainWindow::detectLBP(cv::Mat& frame, cv::Mat& gray, std::vector<cv::Rect>&
                            std::vector<std::string>& labels, std::vector<double>& confidences) {
     std::vector<cv::Rect> lbpDets;
     
-    cascadeCrouching.detectMultiScale(gray, lbpDets, 1.05, 16, 0, cv::Size(80,70), cv::Size(320,300));
+    // Parámetros BALANCEADOS: detectar agachados sin falsos positivos
+    cascadeCrouching.detectMultiScale(
+        gray, 
+        lbpDets,
+        1.05,              // scaleFactor (más escalas)
+        18,                // minNeighbors BALANCEADO
+        cv::CASCADE_SCALE_IMAGE,
+        cv::Size(75, 65),  // minSize (personas agachadas pequeñas)
+        cv::Size(320, 300) // maxSize (personas sentadas grandes)
+    );
     
-    for (const auto& r : lbpDets) {
+    for (cv::Rect r : lbpDets) {
+        // Filtro de aspect ratio (agachados/sentados/parciales)
         double aspect = (double)r.width / r.height;
         if (aspect < 0.6 || aspect > 2.3) continue;
         
+        // FILTRAR SI YA HAY DETECCIÓN HOG CERCANA (evitar duplicados)
+        bool overlapWithHOG = false;
+        for (size_t i = 0; i < detections.size(); i++) {
+            if (labels[i] == "Peaton detectado") {
+                cv::Rect intersection = r & detections[i];
+                double iou = intersection.area() / (double)r.area();
+                if (iou > 0.15) {  // Solo rechazar si overlap >15%
+                    overlapWithHOG = true;
+                    break;
+                }
+            }
+        }
+        if (overlapWithHOG) continue;
+        
+        // EXPANDIR BOUNDING BOX ASIMÉTRICAMENTE (compensar detección parcial LBP)
+        int expandX = (int)(r.width * 0.25);       // 25% más ancho (brazos/hombros)
+        int expandTop = (int)(r.height * 0.20);    // 20% hacia arriba (cabeza completa)
+        int expandBottom = (int)(r.height * 0.60); // 60% hacia abajo (PIERNAS COMPLETAS)
+        
+        r.x = std::max(0, r.x - expandX);
+        r.y = std::max(0, r.y - expandTop);
+        r.width = std::min(frame.cols - r.x, r.width + 2 * expandX);
+        r.height = std::min(frame.rows - r.y, r.height + expandTop + expandBottom);
+        
+        // Validación inteligente de ROI (filtra ventanas automáticamente)
         cv::Mat roi = frame(r);
         if (!isValidPerson(roi)) continue;
         
         detections.push_back(r);
-        labels.push_back("Agachado");
-        confidences.push_back(1.0);
+        labels.push_back("Peaton detectado");
+        confidences.push_back(1.0); // LBP no da scores
     }
 }
 
@@ -393,6 +439,7 @@ void MainWindow::filterOverlapping(std::vector<cv::Rect>& detections, std::vecto
 }
 
 bool MainWindow::isValidPerson(const cv::Mat& roi) {
+    // Validación inteligente para LBP (eliminar ventanas sin perder personas)
     cv::Mat gray_roi;
     if (roi.channels() == 3) {
         cv::cvtColor(roi, gray_roi, cv::COLOR_BGR2GRAY);
@@ -400,14 +447,74 @@ bool MainWindow::isValidPerson(const cv::Mat& roi) {
         gray_roi = roi.clone();
     }
     
-    cv::Scalar mean, stddev;
-    cv::meanStdDev(gray_roi, mean, stddev);
-    if (stddev[0] < 12.0) return false;
+    // 1. Varianza de color - ventanas son muy uniformes, personas tienen textura
+    cv::Scalar mean_color, stddev_color;
+    cv::meanStdDev(gray_roi, mean_color, stddev_color);
+    if (stddev_color[0] < 17.0) {  // Aumentado para filtrar sillas uniformes
+        return false; // Demasiado uniforme (ventana/pared/silla)
+    }
     
+    // 2. Canny edge detection - densidad de bordes
     cv::Mat edges;
     cv::Canny(gray_roi, edges, 50, 150);
     double edgeDensity = cv::countNonZero(edges) / (double)(edges.rows * edges.cols);
-    if (edgeDensity < 0.06 || edgeDensity > 0.50) return false;
+    
+    // Ventanas/sillas tienen baja densidad O demasiada (marcos metálicos)
+    if (edgeDensity < 0.08 || edgeDensity > 0.40) {  // Reducido máximo para filtrar sillas
+        return false;
+    }
+    
+    // 3. Sobel gradients - verificar estructura humana
+    cv::Mat grad_x, grad_y;
+    cv::Sobel(gray_roi, grad_x, CV_16S, 1, 0, 3);
+    cv::Sobel(gray_roi, grad_y, CV_16S, 0, 1, 3);
+    
+    cv::Mat abs_grad_x, abs_grad_y;
+    cv::convertScaleAbs(grad_x, abs_grad_x);
+    cv::convertScaleAbs(grad_y, abs_grad_y);
+    
+    cv::Scalar mean_x, stddev_x, mean_y, stddev_y;
+    cv::meanStdDev(abs_grad_x, mean_x, stddev_x);
+    cv::meanStdDev(abs_grad_y, mean_y, stddev_y);
+    
+    // Personas tienen gradientes balanceados en ambas direcciones
+    if (stddev_x[0] < 9.0 || stddev_y[0] < 9.0) {  // Aumentado
+        return false;
+    }
+    
+    // 4. Análisis de textura LBP - contar transiciones de píxeles
+    int transitions = 0;
+    for (int i = 1; i < gray_roi.rows - 1; i++) {
+        for (int j = 1; j < gray_roi.cols - 1; j++) {
+            int center = gray_roi.at<uchar>(i, j);
+            int diff = 0;
+            diff += std::abs(center - gray_roi.at<uchar>(i-1, j)) > 10 ? 1 : 0;
+            diff += std::abs(center - gray_roi.at<uchar>(i+1, j)) > 10 ? 1 : 0;
+            diff += std::abs(center - gray_roi.at<uchar>(i, j-1)) > 10 ? 1 : 0;
+            diff += std::abs(center - gray_roi.at<uchar>(i, j+1)) > 10 ? 1 : 0;
+            if (diff >= 2) transitions++;
+        }
+    }
+    double transitionRatio = transitions / (double)(gray_roi.rows * gray_roi.cols);
+    if (transitionRatio < 0.15) {  // Aumentado para filtrar sillas
+        return false; // Muy poca textura (ventana lisa o silla)
+    }
+    
+    // 5. Aspect ratio adicional (evitar detecciones muy anchas)
+    double aspect = (double)roi.cols / roi.rows;
+    if (aspect > 2.3) {
+        return false;
+    }
+    
+    // 6. Detección de tono de piel (filtro adicional)
+    cv::Mat hsv_roi;
+    cv::cvtColor(roi, hsv_roi, cv::COLOR_BGR2HSV);
+    cv::Mat skin_mask;
+    cv::inRange(hsv_roi, cv::Scalar(0, 20, 60), cv::Scalar(20, 255, 255), skin_mask);
+    double skinRatio = cv::countNonZero(skin_mask) / (double)(skin_mask.rows * skin_mask.cols);
+    if (skinRatio < 0.012) {  // Al menos 1.2% de píxeles con tono piel
+        return false;
+    }
     
     return true;
 }
