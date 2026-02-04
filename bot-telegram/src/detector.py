@@ -3,6 +3,8 @@ import numpy as np
 from ultralytics import YOLO
 import io
 from PIL import Image
+import psutil
+import time
 
 class PoseDetector:
     def __init__(self, model_path='yolov8n-pose.pt', confidence=0.5):
@@ -10,11 +12,15 @@ class PoseDetector:
         self.model = YOLO(model_path)
         self.confidence = confidence
         self.frame_buffer = []  # Buffer para crear GIF/video
-        self.max_frames = 10    # Número de frames para el GIF
+        self.max_frames = 30    # 30 frames × 200ms = 6 segundos
+        self.last_process_time = 0
+        self.fps = 0
         print("[DETECTOR] Modelo cargado.")
     
     def analyze_image(self, image_bytes):
         try:
+            start_time = time.time()
+            
             np_bytes = np.frombuffer(image_bytes, np.uint8)
             frame = cv2.imdecode(np_bytes, cv2.IMREAD_COLOR)
             
@@ -47,8 +53,31 @@ class PoseDetector:
             
             # Generar GIF solo si hay suficientes frames
             gif_bytes = None
-            if len(self.frame_buffer) >= 3:
+            if len(self.frame_buffer) >= 5:  # Mínimo 5 frames
                 gif_bytes = self._create_gif()
+            
+            # Calcular FPS y métricas de uso
+            process_time = time.time() - start_time
+            self.fps = 1.0 / process_time if process_time > 0 else 0
+            
+            # Obtener información de uso del sistema
+            memory_percent = psutil.virtual_memory().percent
+            memory_mb = psutil.Process().memory_info().rss / 1024 / 1024
+            
+            # Contar keypoints detectados
+            total_keypoints = 0
+            avg_confidence = 0
+            if results and len(results[0].keypoints) > 0:
+                keypoints = results[0].keypoints.data
+                for person_kpts in keypoints:
+                    # Contar keypoints con confianza > 0.5
+                    visible_kpts = person_kpts[person_kpts[:, 2] > 0.5]
+                    total_keypoints += len(visible_kpts)
+                    if len(visible_kpts) > 0:
+                        avg_confidence += visible_kpts[:, 2].mean()
+                
+                if len(keypoints) > 0:
+                    avg_confidence /= len(keypoints)
             
             return {
                 "success": True,
@@ -57,7 +86,13 @@ class PoseDetector:
                 "original_image": encoded_orig.tobytes(),
                 "annotated_image": encoded_ann.tobytes(),
                 "gif_video": gif_bytes,
-                "person_count": len(results[0].boxes) if results else 0
+                "person_count": len(results[0].boxes) if results else 0,
+                "fps": round(self.fps, 1),
+                "memory_percent": round(memory_percent, 1),
+                "memory_mb": round(memory_mb, 1),
+                "keypoints_detected": total_keypoints,
+                "avg_confidence": round(float(avg_confidence), 2) if avg_confidence > 0 else 0.0,
+                "process_time_ms": round(process_time * 1000, 1)
             }
             
         except Exception as e:

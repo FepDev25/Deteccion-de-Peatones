@@ -38,7 +38,7 @@ void MainWindow::setupUI() {
 
     QHBoxLayout *mainLayout = new QHBoxLayout(centralWidget);
 
-    // ===== PANEL IZQUIERDO: VIDEO =====
+    // panel izquierdo: video
     QVBoxLayout *videoLayout = new QVBoxLayout();
     
     videoLabel = new QLabel(this);
@@ -50,10 +50,10 @@ void MainWindow::setupUI() {
     
     videoLayout->addWidget(videoLabel);
     
-    // ===== PANEL DERECHO: CONTROLES =====
+    // panel derecho: controles
     QVBoxLayout *controlLayout = new QVBoxLayout();
     
-    // Grupo de información
+    // grupo de información
     QGroupBox *infoGroup = new QGroupBox("Información en Tiempo Real");
     infoGroup->setStyleSheet("QGroupBox { font-weight: bold; color: #2196F3; }");
     QVBoxLayout *infoLayout = new QVBoxLayout();
@@ -73,7 +73,7 @@ void MainWindow::setupUI() {
     infoLayout->addWidget(statusLabel);
     infoGroup->setLayout(infoLayout);
     
-    // Grupo de selección de modo
+    // grupo de selección de modo
     QGroupBox *modeGroup = new QGroupBox("Pipeline de Detección");
     modeGroup->setStyleSheet("QGroupBox { font-weight: bold; color: #2196F3; }");
     QVBoxLayout *modeLayout = new QVBoxLayout();
@@ -92,12 +92,12 @@ void MainWindow::setupUI() {
     modeLayout->addWidget(modeComboBox);
     modeGroup->setLayout(modeLayout);
     
-    // Grupo de controles principales
+    // grupo de controles principales
     QGroupBox *controlGroup = new QGroupBox("Controles");
     controlGroup->setStyleSheet("QGroupBox { font-weight: bold; color: #2196F3; }");
     QVBoxLayout *buttonLayout = new QVBoxLayout();
     
-    startStopButton = new QPushButton("▶️ Iniciar Cámara");
+    startStopButton = new QPushButton("Iniciar Cámara");
     startStopButton->setStyleSheet(
         "QPushButton { background-color: #4CAF50; color: white; font-size: 16px; "
         "padding: 12px; border-radius: 5px; font-weight: bold; }"
@@ -105,7 +105,7 @@ void MainWindow::setupUI() {
     );
     connect(startStopButton, &QPushButton::clicked, this, &MainWindow::toggleCamera);
     
-    sendBotButton = new QPushButton("📤 Enviar a Telegram");
+    sendBotButton = new QPushButton("Enviar a Telegram");
     sendBotButton->setStyleSheet(
         "QPushButton { background-color: #2196F3; color: white; font-size: 14px; "
         "padding: 10px; border-radius: 5px; }"
@@ -125,7 +125,7 @@ void MainWindow::setupUI() {
     buttonLayout->addWidget(autoSendCheckBox);
     controlGroup->setLayout(buttonLayout);
     
-    // Grupo de información adicional
+    // grupo de información adicional
     QGroupBox *helpGroup = new QGroupBox("Información del Sistema");
     helpGroup->setStyleSheet("QGroupBox { font-weight: bold; color: #2196F3; }");
     QVBoxLayout *helpLayout = new QVBoxLayout();
@@ -156,10 +156,10 @@ void MainWindow::setupUI() {
 }
 
 void MainWindow::initDetectors() {
-    // Inicializar HOG con detector pre-entrenado
+    // iniciamos HOG con detector pre-entrenado
     hogDetector.setSVMDetector(cv::HOGDescriptor::getDefaultPeopleDetector());
     
-    // Cargar cascadas LBP
+    // cargamos cascades LBP con lo que entrenamos
     if (!cascadeStanding.load("cascade_standing.xml")) {
         QMessageBox::warning(this, "Advertencia", 
             "No se pudo cargar cascade_standing.xml\nLBP no estará disponible");
@@ -183,14 +183,14 @@ void MainWindow::toggleCamera() {
         camera.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
         
         cameraRunning = true;
-        startStopButton->setText("⏸️ Detener Cámara");
+        startStopButton->setText(" Detener Cámara");
         startStopButton->setStyleSheet(
             "QPushButton { background-color: #FF5722; color: white; font-size: 16px; "
             "padding: 12px; border-radius: 5px; font-weight: bold; }"
             "QPushButton:hover { background-color: #E64A19; }"
         );
         sendBotButton->setEnabled(true);
-        statusLabel->setText("Estado: ✅ Activo");
+        statusLabel->setText("Estado: ACTIVO");
         statusLabel->setStyleSheet("QLabel { font-size: 14px; padding: 5px; color: #4CAF50; }");
         
         fpsStartTime = std::chrono::steady_clock::now();
@@ -201,14 +201,14 @@ void MainWindow::toggleCamera() {
         timer->stop();
         camera.release();
         cameraRunning = false;
-        startStopButton->setText("▶️ Iniciar Cámara");
+        startStopButton->setText(" Iniciar Cámara");
         startStopButton->setStyleSheet(
             "QPushButton { background-color: #4CAF50; color: white; font-size: 16px; "
             "padding: 12px; border-radius: 5px; font-weight: bold; }"
             "QPushButton:hover { background-color: #45a049; }"
         );
         sendBotButton->setEnabled(false);
-        statusLabel->setText("Estado: ⏸️ Detenido");
+        statusLabel->setText("Estado: DETENIDO");
         statusLabel->setStyleSheet("QLabel { font-size: 14px; padding: 5px; color: #FF5722; }");
         
         videoLabel->clear();
@@ -272,7 +272,7 @@ void MainWindow::processFrame() {
                    cv::Scalar(0, 0, 0), 2);
     }
     
-    // Actualizar estadísticas
+    // actualizamos estadísticas
     frameCount++;
     detectionCount = detections.size();
     
@@ -284,11 +284,11 @@ void MainWindow::processFrame() {
         fpsStartTime = currentTime;
     }
     
-    // Actualizar UI
+    // actualizamos UI
     fpsLabel->setText(QString("FPS: %1").arg(static_cast<int>(fps)));
     detectionCountLabel->setText(QString("Detecciones: %1").arg(detectionCount));
     
-    // Auto-envío al bot (igual que main_hybrid.cpp - cada 60 frames)
+    // auto-envío al bot
     if (botAutoSend && detectionCount > 0 && cooldownFrames == 0) {
         qDebug() << "[AUTO] Enviando detección al bot...";
         if (sendImageViaHTTP(display)) {
@@ -298,7 +298,7 @@ void MainWindow::processFrame() {
     }
     if (cooldownFrames > 0) cooldownFrames--;
     
-    // Convertir a QImage y mostrar
+    // se hace esta conversion para mostrar en QLabel
     cv::cvtColor(display, display, cv::COLOR_BGR2RGB);
     QImage qimg(display.data, display.cols, display.rows, display.step, QImage::Format_RGB888);
     videoLabel->setPixmap(QPixmap::fromImage(qimg).scaled(videoLabel->size(), Qt::KeepAspectRatio));
@@ -309,11 +309,11 @@ void MainWindow::detectHOG(cv::Mat& frame, cv::Mat& gray, std::vector<cv::Rect>&
     std::vector<cv::Rect> hogDets;
     std::vector<double> weights;
     
-    // IMPORTANTE: Reducir tamaño para mejor performance (igual que main_hybrid.cpp)
+    // es importante redimensionar para mejorar detección y velocidad
     cv::Mat resized;
     cv::resize(frame, resized, cv::Size(320, 240));
     
-    // Parámetros EXACTOS de main_hybrid.cpp (funciona perfectamente)
+    // parametros buenos para HOG, detectar personas de pie
     hogDetector.detectMultiScale(resized, hogDets, weights, 
                                  0.0,           // hitThreshold (balanceado)
                                  cv::Size(4,4), // winStride
@@ -328,7 +328,7 @@ void MainWindow::detectHOG(cv::Mat& frame, cv::Mat& gray, std::vector<cv::Rect>&
         r.width *= 2;
         r.height *= 2;
         
-        // Filtro de aspect ratio (personas de pie)
+        // filtro de aspect ratio para personas de pie
         double aspect = (double)r.height / r.width;
         if (aspect >= 1.5 && aspect <= 3.0) {
             detections.push_back(r);
@@ -342,23 +342,23 @@ void MainWindow::detectLBP(cv::Mat& frame, cv::Mat& gray, std::vector<cv::Rect>&
                            std::vector<std::string>& labels, std::vector<double>& confidences) {
     std::vector<cv::Rect> lbpDets;
     
-    // Parámetros BALANCEADOS: detectar agachados sin falsos positivos
+    // parámetros balanceados: detectar agachados sin falsos positivos
     cascadeCrouching.detectMultiScale(
         gray, 
         lbpDets,
-        1.05,              // scaleFactor (más escalas)
-        18,                // minNeighbors BALANCEADO
+        1.05,              // scaleFactor para más escalas
+        18,                // minNeighbors para balancear precisión/recall
         cv::CASCADE_SCALE_IMAGE,
-        cv::Size(75, 65),  // minSize (personas agachadas pequeñas)
-        cv::Size(320, 300) // maxSize (personas sentadas grandes)
+        cv::Size(75, 65),  // minSize para personas agachadas pequeñas
+        cv::Size(320, 300) // maxSize para personas sentadas grandes
     );
     
     for (cv::Rect r : lbpDets) {
-        // Filtro de aspect ratio (agachados/sentados/parciales)
+        // filtro de aspect ratio para agachados/sentados/parciales
         double aspect = (double)r.width / r.height;
         if (aspect < 0.6 || aspect > 2.3) continue;
         
-        // FILTRAR SI YA HAY DETECCIÓN HOG CERCANA (evitar duplicados)
+        // filtrar si ya hay detección HOG cercana (evitar duplicados)
         bool overlapWithHOG = false;
         for (size_t i = 0; i < detections.size(); i++) {
             if (labels[i] == "Peaton detectado") {
@@ -372,7 +372,7 @@ void MainWindow::detectLBP(cv::Mat& frame, cv::Mat& gray, std::vector<cv::Rect>&
         }
         if (overlapWithHOG) continue;
         
-        // EXPANDIR BOUNDING BOX ASIMÉTRICAMENTE (compensar detección parcial LBP)
+        // expandimos bounding box para mejor cobertura
         int expandX = (int)(r.width * 0.25);       // 25% más ancho (brazos/hombros)
         int expandTop = (int)(r.height * 0.20);    // 20% hacia arriba (cabeza completa)
         int expandBottom = (int)(r.height * 0.60); // 60% hacia abajo (PIERNAS COMPLETAS)
@@ -382,13 +382,13 @@ void MainWindow::detectLBP(cv::Mat& frame, cv::Mat& gray, std::vector<cv::Rect>&
         r.width = std::min(frame.cols - r.x, r.width + 2 * expandX);
         r.height = std::min(frame.rows - r.y, r.height + expandTop + expandBottom);
         
-        // Validación inteligente de ROI (filtra ventanas automáticamente)
+        
         cv::Mat roi = frame(r);
         if (!isValidPerson(roi)) continue;
         
         detections.push_back(r);
         labels.push_back("Peaton detectado");
-        confidences.push_back(1.0); // LBP no da scores
+        confidences.push_back(1.0); 
     }
 }
 
@@ -439,7 +439,7 @@ void MainWindow::filterOverlapping(std::vector<cv::Rect>& detections, std::vecto
 }
 
 bool MainWindow::isValidPerson(const cv::Mat& roi) {
-    // Validación inteligente para LBP (eliminar ventanas sin perder personas)
+    // hacemos una validacion para filtrar falsos positivos comunes
     cv::Mat gray_roi;
     if (roi.channels() == 3) {
         cv::cvtColor(roi, gray_roi, cv::COLOR_BGR2GRAY);
@@ -450,8 +450,8 @@ bool MainWindow::isValidPerson(const cv::Mat& roi) {
     // 1. Varianza de color - ventanas son muy uniformes, personas tienen textura
     cv::Scalar mean_color, stddev_color;
     cv::meanStdDev(gray_roi, mean_color, stddev_color);
-    if (stddev_color[0] < 17.0) {  // Aumentado para filtrar sillas uniformes
-        return false; // Demasiado uniforme (ventana/pared/silla)
+    if (stddev_color[0] < 17.0) {  
+        return false; 
     }
     
     // 2. Canny edge detection - densidad de bordes
@@ -459,8 +459,8 @@ bool MainWindow::isValidPerson(const cv::Mat& roi) {
     cv::Canny(gray_roi, edges, 50, 150);
     double edgeDensity = cv::countNonZero(edges) / (double)(edges.rows * edges.cols);
     
-    // Ventanas/sillas tienen baja densidad O demasiada (marcos metálicos)
-    if (edgeDensity < 0.08 || edgeDensity > 0.40) {  // Reducido máximo para filtrar sillas
+    // esto sirve para filtrar sillas y superficies lisas
+    if (edgeDensity < 0.08 || edgeDensity > 0.40) {  
         return false;
     }
     
@@ -477,12 +477,12 @@ bool MainWindow::isValidPerson(const cv::Mat& roi) {
     cv::meanStdDev(abs_grad_x, mean_x, stddev_x);
     cv::meanStdDev(abs_grad_y, mean_y, stddev_y);
     
-    // Personas tienen gradientes balanceados en ambas direcciones
-    if (stddev_x[0] < 9.0 || stddev_y[0] < 9.0) {  // Aumentado
+    // para personas tienen gradientes balanceados en ambas direcciones
+    if (stddev_x[0] < 9.0 || stddev_y[0] < 9.0) {  
         return false;
     }
     
-    // 4. Análisis de textura LBP - contar transiciones de píxeles
+    // 4. Análisis de textura LBP, es importante para filtrar sillas
     int transitions = 0;
     for (int i = 1; i < gray_roi.rows - 1; i++) {
         for (int j = 1; j < gray_roi.cols - 1; j++) {
@@ -496,23 +496,23 @@ bool MainWindow::isValidPerson(const cv::Mat& roi) {
         }
     }
     double transitionRatio = transitions / (double)(gray_roi.rows * gray_roi.cols);
-    if (transitionRatio < 0.15) {  // Aumentado para filtrar sillas
-        return false; // Muy poca textura (ventana lisa o silla)
+    if (transitionRatio < 0.15) { 
+        return false;
     }
     
-    // 5. Aspect ratio adicional (evitar detecciones muy anchas)
+    // 5. Aspect ratio adicional, para evitar detecciones muy anchas
     double aspect = (double)roi.cols / roi.rows;
     if (aspect > 2.3) {
         return false;
     }
     
-    // 6. Detección de tono de piel (filtro adicional)
+    // 6. ESte filtro de color de piel (HSV) para mayor robustez
     cv::Mat hsv_roi;
     cv::cvtColor(roi, hsv_roi, cv::COLOR_BGR2HSV);
     cv::Mat skin_mask;
     cv::inRange(hsv_roi, cv::Scalar(0, 20, 60), cv::Scalar(20, 255, 255), skin_mask);
     double skinRatio = cv::countNonZero(skin_mask) / (double)(skin_mask.rows * skin_mask.cols);
-    if (skinRatio < 0.012) {  // Al menos 1.2% de píxeles con tono piel
+    if (skinRatio < 0.012) { 
         return false;
     }
     
