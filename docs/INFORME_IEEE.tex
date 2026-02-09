@@ -204,6 +204,10 @@ Implementamos el descriptor Dalal-Triggs \cite{dalal2005histograms} con ventana 
 
 \begin{itemize}
     \item hitThreshold: 0.0 (umbral de decisión SVM)
+    \item winStride: (4, 4) píxeles (paso de ventana deslizante)
+    \item scale: 1.05 (factor de escalado piramidal)
+    \item finalThreshold: 2.0 (agrupamiento de detecciones)
+\end{itemize}
 
 \begin{lstlisting}[caption={Detector LBP en cascada para personas agachadas},label={lst:lbp},language=C++]
 cv::CascadeClassifier cascade_crouching;
@@ -221,10 +225,6 @@ cascade_crouching.detectMultiScale(
 \end{lstlisting}
 
 % TODO: Código completo en main_hybrid.cpp líneas 280-310
-    \item winStride: (4, 4) píxeles (paso de ventana deslizante)
-    \item scale: 1.05 (factor de escalado piramidal)
-    \item finalThreshold: 2.0 (agrupamiento de detecciones)
-\end{itemize}
 
 El frame de entrada se redimensiona a 320×240 para optimizar el balance precisión-velocidad, basado en estudios de Dollar et al. \cite{dollar2012pedestrian} que demuestran degradación mínima (<5\%) en precisión con esta resolución.
 
@@ -487,7 +487,7 @@ std::cout << "Tiempo: " << elapsed_ms << " ms\n";
 
 % TODO: Gráfica de barras comparando CPU vs GPU para cada etapa
 
-El sistema debe alcanzar >30 FPS en modo detección para cumplir requisitos de tiempo real según la rúbric
+El sistema debe alcanzar >30 FPS en modo detección para cumplir requisitos de tiempo real según la rúbrica
 
 \begin{table}[htbp]
 \caption{Resultados de Detección por Postura}
@@ -503,6 +503,10 @@ Caída (YOLO) & 92.1\% & 88.4\% & 90.2\% & 91.3\% \\
 \textbf{Promedio} & \textbf{86.9\%} & \textbf{84.1\%} & \textbf{85.5\%} & \textbf{85.8\%} \\
 \hline
 \end{tabular}
+\label{tab:detection_results_final}
+\end{center}
+\end{table}
+
 % NOTA: Valores estimados.
 % TODO: Medir con herramientas del sistema:
 % - RAM: psutil.Process().memory_info().rss (ya implementado en bot)
@@ -524,7 +528,7 @@ Uso GPU (\%) & - & XX.X\% \\
 Potencia (W) & XX.X & XX.X \\
 \hline
 \end{tabular}
-\label{tab:resources}
+\label{tab:resources_medir}
 \end{center}
 \end{table}
 
@@ -607,7 +611,10 @@ Envío a Telegram (3×) & XXX.X \\
 \textbf{Latencia total} & \textbf{XXX ms} \\
 \hline
 \end{tabular}
-\label{tab:bot_latency}
+\label{tab:bot_latency_medir}
+\end{center}
+\end{table}
+
 % NOTA: Valores de otros métodos tomados de papers citados.
 % Valores de "Nuestro sistema" son ESTIMADOS.
 % TODO: Reemplazar con mediciones reales tras evaluación completa.
