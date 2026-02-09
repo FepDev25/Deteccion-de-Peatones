@@ -29,13 +29,24 @@ def worker():
             result = detector.analyze_image(image_bytes)
             
             if result['success']:
+                # Preparar métricas de uso
+                metrics = {
+                    'fps': result.get('fps', 0),
+                    'memory_mb': result.get('memory_mb', 0),
+                    'memory_percent': result.get('memory_percent', 0),
+                    'keypoints_detected': result.get('keypoints_detected', 0),
+                    'avg_confidence': result.get('avg_confidence', 0),
+                    'process_time_ms': result.get('process_time_ms', 0)
+                }
+                
                 # Enviar 3 archivos según la rúbrica
                 telegram_service.send_notification(
                     original_image=result['original_image'],
                     annotated_image=result['annotated_image'],
                     gif_video=result.get('gif_video'),  # Puede ser None si no hay suficientes frames
                     status_text=result['status'],
-                    person_count=result.get('person_count', 0)
+                    person_count=result.get('person_count', 0),
+                    metrics=metrics
                 )
                 print(f"[WORKER] Notificación enviada. Estado: {result['status']}")
             else:
