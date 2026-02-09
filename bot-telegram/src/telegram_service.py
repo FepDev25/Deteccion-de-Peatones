@@ -9,35 +9,53 @@ class TelegramService:
     def send_notification(self, original_image, annotated_image, gif_video, status_text, person_count, metrics):
         """
         Envía 3 archivos según la rúbrica:
-        1. Imagen original con mensaje de detección
-        2. Imagen con posturas humanas detectadas (superpuestas)
-        3. Video corto (GIF) de la detección en tiempo real
+        1. Imagen original con mensaje de detección realizada
+        2. Imagen con posturas humanas detectadas (superpuestas) - YOLO + Método Híbrido
+        3. Video corto (GIF) de la detección en tiempo real vs original
         """
         try:
             # Construir información de uso del sistema (Criterio 4 - 10%)
             usage_info = (
-                f"\n\n📈 Información de Uso:\n"
-                f"⚡ FPS: {metrics.get('fps', 0)} fps\n"
-                f"🧠 Memoria: {metrics.get('memory_mb', 0)} MB ({metrics.get('memory_percent', 0)}%)\n"
-                f"🎯 Keypoints: {metrics.get('keypoints_detected', 0)} puntos\n"
-                f"✅ Confianza: {metrics.get('avg_confidence', 0):.0%}\n"
-                f"⏱️ Tiempo: {metrics.get('process_time_ms', 0)} ms"
+                f"\n\n Información de Uso:\n"
+                f"⚡ FPS: {metrics.get('fps', 0):.1f} fps\n"
+                f" Memoria: {metrics.get('memory_mb', 0):.1f} MB ({metrics.get('memory_percent', 0):.1f}%)\n"
+                f" Keypoints detectados: {metrics.get('keypoints_detected', 0)} puntos\n"
+                f" Confianza promedio: {int(metrics.get('avg_confidence', 0) * 100)}%\n"
+                f"⏱ Tiempo de proceso: {metrics.get('process_time_ms', 0):.0f} ms"
             )
             
-            # 1. Enviar IMAGEN ORIGINAL con mensaje
-            caption_original = f"🔍 Detección realizada\n\n📊 Estado: {status_text}\n👥 Personas: {person_count}{usage_info}"
+            # 1 IMAGEN ORIGINAL con mensaje de detección realizada (Rúbrica)
+            caption_original = (
+                f" IMAGEN ORIGINAL\n\n"
+                f" Se ha realizado la detección de peatones.\n\n"
+                f" Resultado: {status_text}\n"
+                f" Personas detectadas: {person_count}"
+                f"{usage_info}"
+            )
             self._send_photo(original_image, caption_original)
             
-            # 2. Enviar IMAGEN CON POSTURAS (esqueletos superpuestos)
-            caption_poses = f"🦴 Análisis de Posturas Humanas\n\n{status_text}{usage_info}"
+            # 2 IMAGEN CON POSTURAS HUMANAS DETECTADAS (Rúbrica)
+            caption_poses = (
+                f" IMAGEN CON POSTURAS HUMANAS DETECTADAS\n\n"
+                f" Método: YOLOv8-pose + Detector Híbrido (HOG+LBP)\n"
+                f" Keypoints superpuestos: Esqueleto de 17 puntos COCO\n\n"
+                f" Estado: {status_text}"
+                f"{usage_info}"
+            )
             self._send_photo(annotated_image, caption_poses)
             
-            # 3. Enviar VIDEO/GIF (si está disponible)
+            # 3 VIDEO CORTO (GIF) - Detección en tiempo real vs original (Rúbrica)
             if gif_video:
-                caption_gif = f"🎬 Video de Detección (≥5 segundos)\n{person_count} persona(s) detectada(s){usage_info}"
+                caption_gif = (
+                    f" VIDEO DE DETECCIÓN EN TIEMPO REAL VS ORIGINAL\n\n"
+                    f" Duración: 6 segundos (30 frames)\n"
+                    f" Personas en video: {person_count}\n"
+                    f" Comparación: Detección superpuesta en movimiento"
+                    f"{usage_info}"
+                )
                 self._send_animation(gif_video, caption_gif)
             
-            print("[TELEGRAM] ✅ Notificación completa enviada (3 archivos)")
+            print("[TELEGRAM] Notificación completa enviada (3 archivos)")
                 
         except Exception as e:
             print(f"[TELEGRAM] Excepción: {e}")
