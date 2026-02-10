@@ -1,0 +1,147 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{dalal2005histograms,dollar2012pedestrian}
+\citation{zhang2016far,benenson2014ten}
+\citation{dalal2005histograms}
+\citation{enzweiler2009monocular}
+\citation{redmon2016you,redmon2017yolo9000}
+\citation{toshev2014deeppose,cao2017realtime}
+\citation{ultralytics2023yolov8}
+\citation{vishwakarma2007survey,yu2012survey}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduccion}{1}{section.1}\protected@file@percent }
+\citation{dalal2005histograms}
+\citation{dollar2012pedestrian,enzweiler2009monocular}
+\citation{benenson2014ten}
+\citation{walk2010multi}
+\citation{zhu2006fast}
+\citation{ojala2002multiresolution}
+\citation{viola2004robust}
+\citation{zhang2007local}
+\citation{walk2010multi}
+\citation{toshev2014deeppose}
+\citation{cao2017realtime}
+\citation{redmon2016you}
+\citation{ultralytics2023yolov8}
+\citation{maji2022yolo}
+\citation{paisitkriangkrai2016effective}
+\citation{rougier2011robust}
+\citation{yu2012survey}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {I-A}}Contribuciones}{2}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {II}Trabajos Relacionados}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Deteccion de Peatones con Descriptores HOG}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Clasificadores en Cascada LBP}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Estimacion de Postura Humana con Aprendizaje Profundo}{2}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-D}}Sistemas Hibridos y Deteccion Multi-Postura}{2}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}Descripcion del Problema}{2}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Formulacion del Problema}{2}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Desafios Especificos}{3}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Casos de Uso Criticos}{3}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Metodologia Propuesta}{3}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Arquitectura del Sistema}{3}{subsection.4.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Arquitectura del sistema: Nivel 1 (Qt C++ OpenCV) con HOG+LBP, Nivel 2 (Flask Python) con YOLOv8-pose, y Nivel 3 (Telegram Bot API).}}{3}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:architecture}{{1}{3}{Arquitectura del sistema: Nivel 1 (Qt C++ OpenCV) con HOG+LBP, Nivel 2 (Flask Python) con YOLOv8-pose, y Nivel 3 (Telegram Bot API)}{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Aplicacion de Escritorio C++ (Qt + OpenCV)}{3}{subsection.4.2}\protected@file@percent }
+\citation{dalal2005histograms}
+\citation{ojala2002multiresolution}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}1}Detector HOG + SVM (Modo Personas de Pie)}{4}{subsubsection.4.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}2}Detector LBP Cascade (Modo Agachados/Sentados)}{4}{subsubsection.4.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}3}Proceso de Entrenamiento del Clasificador LBP}{4}{subsubsection.4.2.3}\protected@file@percent }
+\newlabel{lst:dockerfile}{{1}{4}{Dockerfile para entrenamiento}{lstlisting.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces Dockerfile para entrenamiento}}{4}{lstlisting.1}\protected@file@percent }
+\newlabel{lst:traincmd}{{2}{4}{Comando de entrenamiento LBP}{lstlisting.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}{\ignorespaces Comando de entrenamiento LBP}}{4}{lstlisting.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}4}Validacion Heuristica (6 Filtros)}{4}{subsubsection.4.2.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Filtros de validacion heuristica}}{4}{table.caption.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}5}Fusion de Detectores y NMS}{4}{subsubsection.4.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-B}6}Expansion de Bounding Boxes (LBP)}{5}{subsubsection.4.2.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Integracion HTTP con Bot Flask}{5}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Servidor Flask y Bot de Telegram (Python)}{5}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-D}1}Arquitectura del Servidor}{5}{subsubsection.4.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-D}2}Detector YOLOv8-Pose}{5}{subsubsection.4.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-D}3}Servicio de Telegram}{5}{subsubsection.4.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-D}4}Configuracion}{5}{subsubsection.4.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-D}5}Flujo de Datos}{5}{subsubsection.4.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}Resultados Experimentales}{5}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Metricas de Rendimiento}{5}{subsection.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Metricas de rendimiento: Precision, Sensibilidad, Especificidad, F1-Score y Exactitud comparando HOG+LBP (Hibrido) vs YOLOv8-Pose}}{5}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:metrics_comparison}{{2}{5}{Metricas de rendimiento: Precision, Sensibilidad, Especificidad, F1-Score y Exactitud comparando HOG+LBP (Hibrido) vs YOLOv8-Pose}{figure.caption.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Resultados de Deteccion por Postura}}{5}{table.caption.4}\protected@file@percent }
+\newlabel{tab:detection_results}{{II}{5}{Resultados de Deteccion por Postura}{table.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Matriz de Confusion}{6}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Reduccion de Falsos Positivos}{6}{subsection.5.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Reduccion de Falsos Positivos por Filtro}}{6}{table.caption.5}\protected@file@percent }
+\newlabel{tab:false_positives}{{III}{6}{Reduccion de Falsos Positivos por Filtro}{table.caption.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Rendimiento Temporal}{6}{subsection.5.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Analisis de FPS del sistema: distribucion temporal, histograma, analisis por categoria y estadisticas descriptivas}}{6}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:fps_analysis}{{3}{6}{Analisis de FPS del sistema: distribucion temporal, histograma, analisis por categoria y estadisticas descriptivas}{figure.caption.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Tiempos de Procesamiento por Etapa}}{6}{table.caption.7}\protected@file@percent }
+\newlabel{tab:timing}{{IV}{6}{Tiempos de Procesamiento por Etapa}{table.caption.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-E}}Uso de Recursos}{6}{subsection.5.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Analisis de uso de memoria: distribucion del Bot Telegram + YOLOv8 y comparacion Bot vs Aplicacion Qt}}{6}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:memory_usage}{{4}{6}{Analisis de uso de memoria: distribucion del Bot Telegram + YOLOv8 y comparacion Bot vs Aplicacion Qt}{figure.caption.8}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Consumo de Recursos del Sistema}}{6}{table.caption.9}\protected@file@percent }
+\newlabel{tab:resources}{{V}{6}{Consumo de Recursos del Sistema}{table.caption.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-F}}Analisis de Postura con YOLOv8-pose}{6}{subsection.5.6}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Analisis YOLOv8-Pose: confianza de deteccion, distribucion, keypoints detectados por prueba y relacion keypoints vs confianza}}{6}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:yolo_analysis}{{5}{6}{Analisis YOLOv8-Pose: confianza de deteccion, distribucion, keypoints detectados por prueba y relacion keypoints vs confianza}{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-G}}Evaluacion del Bot de Telegram}{6}{subsection.5.7}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces Precision de Keypoints Detectados}}{7}{table.caption.11}\protected@file@percent }
+\newlabel{tab:keypoints}{{VI}{7}{Precision de Keypoints Detectados}{table.caption.11}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces Latencia del Sistema de Notificacion}}{7}{table.caption.12}\protected@file@percent }
+\newlabel{tab:bot_latency}{{VII}{7}{Latencia del Sistema de Notificacion}{table.caption.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-H}}Pruebas Experimentales en Tiempo Real}{7}{subsection.5.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Resultados de pruebas 1-6: Deteccion de peatones con YOLOv8-pose. Cada imagen muestra el esqueleto de 17 puntos COCO superpuesto, bounding boxes del detector hibrido HOG+LBP, y metricas de rendimiento (FPS, memoria, keypoints detectados, confianza promedio).}}{7}{figure.caption.13}\protected@file@percent }
+\newlabel{fig:pruebas1}{{6}{7}{Resultados de pruebas 1-6: Deteccion de peatones con YOLOv8-pose. Cada imagen muestra el esqueleto de 17 puntos COCO superpuesto, bounding boxes del detector hibrido HOG+LBP, y metricas de rendimiento (FPS, memoria, keypoints detectados, confianza promedio)}{figure.caption.13}{}}
+\citation{dalal2005histograms}
+\citation{felzenszwalb2009object}
+\citation{ren2015faster}
+\citation{redmon2018yolov3}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Resultados de pruebas 7-10: Escenarios multi-persona con diferentes posturas. El sistema detecta correctamente personas de pie, sentadas, agachadas e inclinadas simultaneamente.}}{8}{figure.caption.14}\protected@file@percent }
+\newlabel{fig:pruebas2}{{7}{8}{Resultados de pruebas 7-10: Escenarios multi-persona con diferentes posturas. El sistema detecta correctamente personas de pie, sentadas, agachadas e inclinadas simultaneamente}{figure.caption.14}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-I}}Comparacion con Estado del Arte}{8}{subsection.5.9}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces Comparacion con Metodos Existentes}}{8}{table.caption.15}\protected@file@percent }
+\newlabel{tab:comparison}{{VIII}{8}{Comparacion con Metodos Existentes}{table.caption.15}{}}
+\@writefile{lot}{\contentsline {subtable}{\numberline{(a)}{\ignorespaces {Persona de pie (17 keypoints, 96\% confianza)}}}{8}{table.caption.15}\protected@file@percent }
+\@writefile{lot}{\contentsline {subtable}{\numberline{(b)}{\ignorespaces {Persona de espaldas (17 keypoints)}}}{8}{table.caption.15}\protected@file@percent }
+\@writefile{lot}{\contentsline {subtable}{\numberline{(c)}{\ignorespaces {Persona inclinada (16 keypoints, 88\% confianza)}}}{8}{table.caption.15}\protected@file@percent }
+\@writefile{lot}{\contentsline {subtable}{\numberline{(d)}{\ignorespaces {Persona sentada (15 keypoints, 86\% confianza)}}}{8}{table.caption.15}\protected@file@percent }
+\@writefile{lot}{\contentsline {subtable}{\numberline{(e)}{\ignorespaces {Dos personas de pie (34 keypoints, 92\% confianza)}}}{8}{table.caption.15}\protected@file@percent }
+\@writefile{lot}{\contentsline {subtable}{\numberline{(f)}{\ignorespaces {Una de pie, una sentada (33 keypoints)}}}{8}{table.caption.15}\protected@file@percent }
+\@writefile{lot}{\contentsline {subtable}{\numberline{(a)}{\ignorespaces {Dos personas sentadas (30 keypoints, 89\% confianza)}}}{8}{table.caption.15}\protected@file@percent }
+\@writefile{lot}{\contentsline {subtable}{\numberline{(b)}{\ignorespaces {Dos personas de pie - vista frontal (34 keypoints)}}}{8}{table.caption.15}\protected@file@percent }
+\@writefile{lot}{\contentsline {subtable}{\numberline{(c)}{\ignorespaces {Dos personas inclinadas (32 keypoints, 87\% confianza)}}}{8}{table.caption.15}\protected@file@percent }
+\@writefile{lot}{\contentsline {subtable}{\numberline{(d)}{\ignorespaces {Una agachada y una sentada (31 keypoints, 90\% confianza)}}}{8}{table.caption.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Discusion}{8}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}Ventajas del Enfoque Hibrido}{8}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-B}}Limitaciones Identificadas}{8}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-C}}Trabajo Futuro}{8}{subsection.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Conclusiones}{8}{section.7}\protected@file@percent }
+\bibcite{dalal2005histograms}{1}
+\bibcite{dollar2012pedestrian}{2}
+\bibcite{zhang2016far}{3}
+\bibcite{benenson2014ten}{4}
+\bibcite{enzweiler2009monocular}{5}
+\bibcite{redmon2016you}{6}
+\bibcite{redmon2017yolo9000}{7}
+\bibcite{toshev2014deeppose}{8}
+\bibcite{cao2017realtime}{9}
+\bibcite{ultralytics2023yolov8}{10}
+\bibcite{vishwakarma2007survey}{11}
+\bibcite{yu2012survey}{12}
+\bibcite{walk2010multi}{13}
+\bibcite{zhu2006fast}{14}
+\bibcite{ojala2002multiresolution}{15}
+\bibcite{viola2004robust}{16}
+\bibcite{zhang2007local}{17}
+\bibcite{maji2022yolo}{18}
+\bibcite{paisitkriangkrai2016effective}{19}
+\bibcite{rougier2011robust}{20}
+\bibcite{lin2014microsoft}{21}
+\bibcite{felzenszwalb2009object}{22}
+\bibcite{ren2015faster}{23}
+\bibcite{redmon2018yolov3}{24}
+\@writefile{toc}{\contentsline {section}{References}{9}{section*.16}\protected@file@percent }
+\gdef \@abspage@last{9}
