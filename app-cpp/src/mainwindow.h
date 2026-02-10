@@ -13,6 +13,13 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/objdetect.hpp>
 
+// Intentar usar GPU si está disponible
+#ifdef HAVE_CUDA
+#include <opencv2/cudaobjdetect.hpp>
+#include <opencv2/cudaimgproc.hpp>
+#include <opencv2/cudawarping.hpp>
+#endif
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -58,6 +65,12 @@ private:
     cv::HOGDescriptor hogDetector;
     cv::CascadeClassifier cascadeStanding;
     cv::CascadeClassifier cascadeCrouching;
+    
+    // GPU Support (opcional)
+    #ifdef HAVE_CUDA
+    cv::Ptr<cv::cuda::HOG> hogDetectorGPU;
+    bool useGPU;
+    #endif
     
     // Timer
     QTimer *timer;

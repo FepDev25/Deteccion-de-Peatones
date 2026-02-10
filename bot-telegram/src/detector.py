@@ -127,37 +127,29 @@ class PoseDetector:
             return None
     
     def _analyze_pose(self, results):
-        """Analizar postura basado en keypoints de YOLOv8-pose"""
+        """Analizar detección de personas"""
         status = "Sin personas detectadas"
         is_critical = False
         
         if results and len(results[0].boxes) > 0:
             num_people = len(results[0].boxes)
-            status_list = []
             
+            # Detectar posturas críticas (caídas) por aspect ratio
             for i in range(num_people):
                 box = results[0].boxes[i].xywh[0]
                 w, h = float(box[2]), float(box[3])
                 aspect_ratio = w / h
                 
-                # Analizar postura por aspect ratio del bounding box
-                if aspect_ratio > 1.2:
-                    person_status = "CAÍDA DETECTADA "
+                # Solo marcar como crítico si hay caída (muy horizontal)
+                if aspect_ratio > 1.3:
                     is_critical = True
-                elif aspect_ratio > 0.8:
-                    person_status = "Agachado/Sentado "
-                else:
-                    person_status = "De Pie 🚶"
-                
-                status_list.append(person_status)
+                    break
             
-            # Crear mensaje final
+            # Mensaje simple sin clasificar postura
             if num_people == 1:
-                status = f"1 persona: {status_list[0]}"
+                status = "1 persona detectada"
             else:
-                status = f"{num_people} personas detectadas\n" + "\n".join(
-                    [f"• Persona {i+1}: {s}" for i, s in enumerate(status_list)]
-                )
+                status = f"{num_people} personas detectadas"
         
         print(f"[DETECTOR] Estado: {status}")
         return status, is_critical

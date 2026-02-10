@@ -16,6 +16,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     cooldownFrames = 0;
     fps = 0.0;
     
+    #ifdef HAVE_CUDA
+    useGPU = (cv::cuda::getCudaEnabledDeviceCount() > 0);
+    if (useGPU) {
+        std::cout << "[GPU] CUDA detectado - Usando aceleración GPU" << std::endl;
+    } else {
+        std::cout << "[CPU] CUDA no disponible - Usando CPU" << std::endl;
+    }
+    #endif
+    
     setupUI();
     initDetectors();
     
@@ -156,8 +165,29 @@ void MainWindow::setupUI() {
 }
 
 void MainWindow::initDetectors() {
-    // iniciamos HOG con detector pre-entrenado
+    // Iniciamos HOG CPU (siempre disponible como fallback)
     hogDetector.setSVMDetector(cv::HOGDescriptor::getDefaultPeopleDetector());
+    
+    #ifdef HAVE_CUDA
+    // Intentar inicializar HOG GPU si está disponible
+    if (useGPU) {
+        try {
+            hogDetectorGPU = cv::cuda::HOG::create(
+                cv::Size(64, 128),  // winSize (igual que CPU)
+                cv::Size(16, 16),   // blockSize
+                cv::Size(8, 8),     // blockStride
+                cv::Size(8, 8),     // cellSize
+                9                   // nbins
+            );
+            hogDetectorGPU->setSVMDetector(hogDetector.getDefaultPeopleDetector());
+            hogDetectorGPU->setGroupThreshold(2);  // finalThreshold=1.8 equivalente
+            qDebug() << "[GPU] HOG Detector GPU inicializado correctamente";
+        } catch (const cv::Exception& e) {
+            qDebug() << "[GPU] Error al inicializar HOG GPU:" << e.what();
+            useGPU = false;
+        }
+    }
+    #endif
     
     // cargamos cascades LBP con lo que entrenamos
     if (!cascadeStanding.load("cascade_standing.xml")) {
@@ -309,17 +339,48 @@ void MainWindow::detectHOG(cv::Mat& frame, cv::Mat& gray, std::vector<cv::Rect>&
     std::vector<cv::Rect> hogDets;
     std::vector<double> weights;
     
-    // es importante redimensionar para mejorar detección y velocidad
+    // Redimensionar para mejorar detección y velocidad
     cv::Mat resized;
     cv::resize(frame, resized, cv::Size(320, 240));
     
-    // parametros buenos para HOG, detectar personas de pie
+    #ifdef HAVE_CUDA
+    if (useGPU && hogDetectorGPU) {
+        // VERSIÓN GPU - MÁS RÁPIDA
+        try {
+            cv::cuda::GpuMat gpuFrame;
+            gpuFrame.upload(resized);
+            
+            cv::cuda::GpuMat gpuGray;
+            cv::cuda::cvtColor(gpuFrame, gpuGray, cv::COLOR_BGR2GRAY);
+            
+            // Detectar con GPU (parámetros optimizados)
+            hogDetectorGPU->setScaleFactor(1.05);
+            hogDetectorGPU->setHitThreshold(0.0);
+            hogDetectorGPU->setWinStride(cv::Size(8, 8));  // Debe ser múltiplo de block_stride (8)
+            
+            hogDetectorGPU->detectMultiScale(gpuGray, hogDets);
+            
+            // Asignar pesos por defecto (GPU no devuelve weights)
+            weights.resize(hogDets.size(), 1.0);
+            
+        } catch (const cv::Exception& e) {
+            qDebug() << "[GPU] Error en detección, fallback a CPU:" << e.what();
+            useGPU = false;
+            // Caer a CPU
+            hogDetector.detectMultiScale(resized, hogDets, weights, 
+                                         0.0, cv::Size(4,4), cv::Size(8,8), 1.05, 2.2);
+        }
+    } else
+    #endif
+    {
+    // parametros buenos para HOG, detectar personas de pie y posturas variadas
     hogDetector.detectMultiScale(resized, hogDets, weights, 
-                                 0.0,           // hitThreshold (balanceado)
+                                 0.0,           // hitThreshold
                                  cv::Size(4,4), // winStride
                                  cv::Size(8,8), // padding
                                  1.05,          // scale
-                                 2.0);          // finalThreshold
+                                 1.8);          // finalThreshold más permisivo
+    }
     
     for (size_t i = 0; i < hogDets.size(); i++) {
         cv::Rect r = hogDets[i];
@@ -347,9 +408,9 @@ void MainWindow::detectLBP(cv::Mat& frame, cv::Mat& gray, std::vector<cv::Rect>&
         gray, 
         lbpDets,
         1.05,              // scaleFactor para más escalas
-        18,                // minNeighbors para balancear precisión/recall
+        12,                // minNeighbors bajo para detectar personas parcialmente ocluidas
         cv::CASCADE_SCALE_IMAGE,
-        cv::Size(75, 65),  // minSize para personas agachadas pequeñas
+        cv::Size(60, 50),  // minSize más pequeño para detectar partes visibles de personas tapadas
         cv::Size(320, 300) // maxSize para personas sentadas grandes
     );
     
@@ -439,7 +500,7 @@ void MainWindow::filterOverlapping(std::vector<cv::Rect>& detections, std::vecto
 }
 
 bool MainWindow::isValidPerson(const cv::Mat& roi) {
-    // hacemos una validacion para filtrar falsos positivos comunes
+    // Validación BALANCEADA - ni muy estricta ni muy permisiva
     cv::Mat gray_roi;
     if (roi.channels() == 3) {
         cv::cvtColor(roi, gray_roi, cv::COLOR_BGR2GRAY);
@@ -450,7 +511,7 @@ bool MainWindow::isValidPerson(const cv::Mat& roi) {
     // 1. Varianza de color - ventanas son muy uniformes, personas tienen textura
     cv::Scalar mean_color, stddev_color;
     cv::meanStdDev(gray_roi, mean_color, stddev_color);
-    if (stddev_color[0] < 17.0) {  
+    if (stddev_color[0] < 11.0) {  // Tolera oclusión parcial (menos textura visible)
         return false; 
     }
     
@@ -459,12 +520,12 @@ bool MainWindow::isValidPerson(const cv::Mat& roi) {
     cv::Canny(gray_roi, edges, 50, 150);
     double edgeDensity = cv::countNonZero(edges) / (double)(edges.rows * edges.cols);
     
-    // esto sirve para filtrar sillas y superficies lisas
-    if (edgeDensity < 0.08 || edgeDensity > 0.40) {  
+    // Rango más amplio para oclusión parcial (menos bordes visibles)
+    if (edgeDensity < 0.03 || edgeDensity > 0.45) {  
         return false;
     }
     
-    // 3. Sobel gradients - verificar estructura humana
+    // 3. Sobel gradients - BALANCEADO
     cv::Mat grad_x, grad_y;
     cv::Sobel(gray_roi, grad_x, CV_16S, 1, 0, 3);
     cv::Sobel(gray_roi, grad_y, CV_16S, 0, 1, 3);
@@ -478,11 +539,11 @@ bool MainWindow::isValidPerson(const cv::Mat& roi) {
     cv::meanStdDev(abs_grad_y, mean_y, stddev_y);
     
     // para personas tienen gradientes balanceados en ambas direcciones
-    if (stddev_x[0] < 9.0 || stddev_y[0] < 9.0) {  
+    if (stddev_x[0] < 7.0 || stddev_y[0] < 7.0) {  // Más permisivo
         return false;
     }
     
-    // 4. Análisis de textura LBP, es importante para filtrar sillas
+    // 4. Análisis de textura LBP - BALANCEADO
     int transitions = 0;
     for (int i = 1; i < gray_roi.rows - 1; i++) {
         for (int j = 1; j < gray_roi.cols - 1; j++) {
@@ -496,13 +557,13 @@ bool MainWindow::isValidPerson(const cv::Mat& roi) {
         }
     }
     double transitionRatio = transitions / (double)(gray_roi.rows * gray_roi.cols);
-    if (transitionRatio < 0.15) { 
+    if (transitionRatio < 0.12) {  // Más permisivo
         return false;
     }
     
     // 5. Aspect ratio adicional, para evitar detecciones muy anchas
     double aspect = (double)roi.cols / roi.rows;
-    if (aspect > 2.3) {
+    if (aspect > 2.5) {  // Permite más posturas agachadas
         return false;
     }
     
@@ -512,7 +573,7 @@ bool MainWindow::isValidPerson(const cv::Mat& roi) {
     cv::Mat skin_mask;
     cv::inRange(hsv_roi, cv::Scalar(0, 20, 60), cv::Scalar(20, 255, 255), skin_mask);
     double skinRatio = cv::countNonZero(skin_mask) / (double)(skin_mask.rows * skin_mask.cols);
-    if (skinRatio < 0.012) { 
+    if (skinRatio < 0.004) {  // Tolera oclusión (cabeza/manos parcialmente visibles)
         return false;
     }
     
@@ -560,13 +621,21 @@ bool MainWindow::sendImageViaHTTP(const cv::Mat& frame) {
 void MainWindow::sendToBot() {
     cv::Mat frame;
     camera >> frame;
-    if (frame.empty()) return;
+    if (frame.empty()) {
+        QMessageBox::warning(this, "Error", "No se pudo capturar frame de la cámara");
+        return;
+    }
     
     if (sendImageViaHTTP(frame)) {
-        QMessageBox::information(this, "Éxito", "Imagen enviada a Telegram");
+        QMessageBox::information(this, "Éxito", 
+            "Imagen enviada al Bot de Telegram\n\n"
+            "NOTA: Mantén la cámara activa durante 5-7 segundos\n"
+            "moviéndote para generar el video con movimiento.");
     } else {
         QMessageBox::warning(this, "Error", "No se pudo enviar la imagen");
     }
+    
+    statusLabel->setText("Estado: EJECUTANDO");
 }
 
 void MainWindow::changeDetectionMode(int index) {
