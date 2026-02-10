@@ -396,7 +396,7 @@ El sistema supera el umbral del 80\% de precision requerido en todas las categor
 
 \subsection{Reduccion de Falsos Positivos}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Reduccion de Falsos Positivos por Filtro}
 \begin{center}
 \begin{tabular}{|l|c|c|}
@@ -415,6 +415,15 @@ HOG baseline & 4.7 & - \\
 \label{tab:false_positives}
 \end{center}
 \end{table}
+
+\begin{figure}[H]
+\centering
+\subfigure[Sin filtros de validacion: multiples falsos positivos (sofa y silla detectados incorrectamente como peatones)]{\includegraphics[width=0.48\columnwidth]{report/pruebas/sin-filtros.jpeg}}
+\hfill
+\subfigure[Con 6 filtros de validacion: solo 2 personas reales detectadas correctamente con sus keypoints COCO]{\includegraphics[width=0.48\columnwidth]{report/pruebas/con-filtros.jpeg}}
+\caption{Efecto de la validacion heuristica de 6 filtros: (a) Detector LBP sin validacion genera falsos positivos en objetos con textura similar (sofa, silla de oficina). (b) Mismo escenario con validacion activada: solo las 2 personas agachadas/sentadas son detectadas y enviadas a YOLOv8-pose para analisis de postura.}
+\label{fig:filtros_comparacion}
+\end{figure}
 
 \subsection{Rendimiento Temporal}
 
@@ -720,9 +729,6 @@ S. Paisitkriangkrai, C. Shen, and A. Van Den Hengel, ``Strengthening the effecti
 
 \bibitem{rougier2011robust}
 C. Rougier, J. Meunier, A. St-Arnaud, and J. Rousseau, ``Robust video surveillance for fall detection based on human shape deformation,'' \textit{IEEE Transactions on Circuits and Systems for Video Technology}, vol. 21, no. 5, pp. 611--622, 2011.
-
-\bibitem{lin2014microsoft}
-T.-Y. Lin, M. Maire, S. Belongie, J. Hays, P. Perona, D. Ramanan, P. Doll\'ar, and C. L. Zitnick, ``Microsoft COCO: Common objects in context,'' in \textit{European Conference on Computer Vision}, pp. 740--755, Springer, 2014.
 
 \bibitem{felzenszwalb2009object}
 P. F. Felzenszwalb, R. B. Girshick, D. McAllester, and D. Ramanan, ``Object detection with discriminatively trained part-based models,'' \textit{IEEE Transactions on Pattern Analysis and Machine Intelligence}, vol. 32, no. 9, pp. 1627--1645, 2009.
