@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1770758148.14778 "/home/felipep/Documentos/universidad/universidad 7mo/vision por computador/Final-Vision-por-Computador/docs/ingles/INFORME_IEEE_EN.tex" "INFORME_IEEE_EN.pdf" "INFORME_IEEE_EN" 1770758151.16954 0
+["pdflatex"] 1770758567.1786 "/home/felipep/Documentos/universidad/universidad 7mo/vision por computador/Final-Vision-por-Computador/docs/ingles/INFORME_IEEE_EN.tex" "INFORME_IEEE_EN.pdf" "INFORME_IEEE_EN" 1770758570.21921 0
   "../report/graficas/1_precision_sensibilidad_especificidad.png" 1770730787.22208 200514 0496065264199a6867908225ad85da3b ""
   "../report/graficas/3_uso_memoria.png" 1770730787.22398 222532 fceea98e1efd23c9572e26f9538eae95 ""
   "../report/graficas/4_analisis_fps.png" 1770730787.22551 348757 e0b6fc012a64d1b43a9f6adf7e86a589 ""
@@ -17,7 +17,7 @@
   "../report/pruebas/10-1-agachada-1-sentada.png" 1770737150.57602 298426 b6aa4d0d0d4aef013f829d6f08d55eb2 ""
   "../report/pruebas/con-filtros.jpeg" 1770747909.92194 108865 9a144c7deb06d5036cdf0a05bdbb14b7 ""
   "../report/pruebas/sin-filtros.jpeg" 1770747909.95908 98772 290c968993ac22ec6292c9f9562c6c48 ""
-  "/home/felipep/Documentos/universidad/universidad 7mo/vision por computador/Final-Vision-por-Computador/docs/ingles/INFORME_IEEE_EN.tex" 1770758144.94337 40547 6366627d5e04e9eb2c7ecf3f13a1589d ""
+  "/home/felipep/Documentos/universidad/universidad 7mo/vision por computador/Final-Vision-por-Computador/docs/ingles/INFORME_IEEE_EN.tex" 1770758477.9652 40638 3c8eb461c7f8b7c5972d3fce9178fd68 ""
   "/usr/share/texmf-dist/fonts/enc/dvips/base/8r.enc" 1767555874 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1767555874 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1767555874 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -151,9 +151,9 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1767555874 42087 b0f9697c952c8f5a8eede4134282cb0d ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1770670939 5311557 9da84c45f5b388655502706482323571 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1770670895 2008235 89219e51d951b7761920e3fdb05737f9 ""
-  "INFORME_IEEE_EN.aux" 1770758151.11748 16256 95fa7588702cbf6bf84c1d39c79b0f9c "pdflatex"
-  "INFORME_IEEE_EN.out" 1770758151.11848 7815 ad2317a3c8489acec047d5913b4adf67 "pdflatex"
-  "INFORME_IEEE_EN.tex" 1770758144.94337 40547 6366627d5e04e9eb2c7ecf3f13a1589d ""
+  "INFORME_IEEE_EN.aux" 1770758570.16779 16256 95fa7588702cbf6bf84c1d39c79b0f9c "pdflatex"
+  "INFORME_IEEE_EN.out" 1770758570.16779 7815 ad2317a3c8489acec047d5913b4adf67 "pdflatex"
+  "INFORME_IEEE_EN.tex" 1770758477.9652 40638 3c8eb461c7f8b7c5972d3fce9178fd68 ""
   (generated)
   "INFORME_IEEE_EN.aux"
   "INFORME_IEEE_EN.log"
